@@ -1,0 +1,5 @@
+# https://www.elastic.co/guide/en/logstash/current/docker-config.html#_docker_defaults
+# https://www.elastic.co/guide/en/logstash/current/logstash-settings-file.html
+
+http.host: "0.0.0.0"
+monitoring.elasticsearch.hosts: [ 'http://elasticsearch:9200' ]

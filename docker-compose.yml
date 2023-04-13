@@ -1,0 +1,93 @@
+services:
+  setup:
+    depends_on:
+      - elasticsearch
+    init: true
+    build:
+      context: setup/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    volumes:
+      - ./setup/entrypoint.sh:/entrypoint.sh:ro,Z
+      - ./setup/lib.sh:/lib.sh:ro,Z
+      - ./setup/roles:/roles:ro,Z
+      - setup:/state:Z
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+      FILEBEAT_INTERNAL_PASSWORD: ${FILEBEAT_INTERNAL_PASSWORD:-}
+    networks:
+      - elk
+
+  elasticsearch:
+    build:
+      context: elasticsearch
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    container_name: anilibrary-elasticsearch
+    environment:
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,z
+      - elasticsearch-data:/usr/share/elasticsearch/data:z
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elk
+
+  logstash:
+    depends_on:
+      - elasticsearch
+    build:
+      context: logstash/
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    container_name: anilibrary-logstash
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+    ports:
+      - "9600:9600"
+      - ${ANILIBRARY_INPUT_PORT}:${ANILIBRARY_INPUT_PORT}/udp
+      - ${ANILIBRARY_SCRAPER_INPUT_PORT}:${ANILIBRARY_SCRAPER_INPUT_PORT}
+    environment:
+      LS_JAVA_OPTS: -Xms256m -Xmx256m
+      LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD}
+    networks:
+      - elk
+      - anilibrary
+
+  kibana:
+    depends_on:
+      - elasticsearch
+      - logstash
+    build:
+      context: kibana
+      args:
+        ELASTIC_VERSION: ${ELASTIC_VERSION}
+    container_name: anilibrary-kibana
+    environment:
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,z
+    networks:
+      - elk
+
+volumes:
+  setup:
+  elasticsearch-data:
+
+networks:
+  elk:
+    driver: bridge
+  anilibrary:
+    external: true

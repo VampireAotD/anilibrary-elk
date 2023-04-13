@@ -1,0 +1,19 @@
+{
+  "cluster": [
+    "manage_ilm",
+    "manage_index_templates",
+    "monitor",
+    "read_pipeline"
+  ],
+  "indices": [
+    {
+      "names": [
+        "anilibrary-*"
+      ],
+      "privileges": [
+        "create_doc",
+        "manage"
+      ]
+    }
+  ]
+}

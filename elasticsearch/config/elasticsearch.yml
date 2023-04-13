@@ -1,0 +1,10 @@
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html
+
+cluster.name: "anilibrary-cluster"
+network.host: 0.0.0.0
+
+discovery.type: single-node
+bootstrap.memory_lock: true
+
+xpack.security.enabled: true
+xpack.license.self_generated.type: basic
