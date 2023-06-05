@@ -7,7 +7,7 @@ function log {
 
 # Log a message at a sub-level.
 function sub_log {
-  echo "   ⠿ $1"
+  echo "  ⠿ $1"
 }
 
 # Log an error.
